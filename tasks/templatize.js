@@ -76,10 +76,25 @@ module.exports = function (grunt) {
 					};
 					body.children[body.children.length-1].next = script;
 					body.children.push(script);
+					body.children.push({ type: 'text', data: '\n' });
 				}
 			});
 
-			function domToString(dom) { return DomUtils.getOuterHTML(dom[0]); }
+			function domToString(dom) {
+				var content = '';
+				for(var i = 0; i < dom.length; i++) {
+					switch(dom[i].type) {
+						case 'text':
+							content += dom[i].data;
+							break;
+						case 'directive':
+						case 'tag':
+							content += DomUtils.getOuterHTML(dom[i]);
+							break;
+					}
+				}
+				return content;
+			}
 			grunt.file.write(options.output, domToString(dom));
 		}
 
