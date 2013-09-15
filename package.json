@@ -1,0 +1,19 @@
+{
+  "name": "grunt-minified",
+  "version": "0.0.0",
+  "description": "A tool to join your Angular.js partials to an html file",
+  "scripts": {
+  },
+  "keywords": [
+    "gruntplugin"
+  ],
+  "author": "Jeff Hubbard <lord2800@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "htmlparser2": "~3.3.0",
+    "esprima": "~1.0.4"
+  },
+  "peerDependencies": {
+    "grunt": "~0.4.1"
+  }
+}
