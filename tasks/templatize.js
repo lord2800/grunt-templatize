@@ -1,6 +1,7 @@
 var esprima = require('esprima'),
 	htmlparser = require('htmlparser2'),
-	DomUtils = htmlparser.DomUtils;
+	DomUtils = htmlparser.DomUtils,
+	path = require('path');
 
 module.exports = function (grunt) {
 	var _ = grunt.util._;
@@ -18,8 +19,11 @@ module.exports = function (grunt) {
 			if(!body) throw new Error('HTML document does not have a body!');
 
 			var scripts = DomUtils.getElementsByTagName('script', dom);
+			var dir = path.dirname(options.index);
 			scripts.forEach(function (script) {
-				var ast = esprima.parse(grunt.file.read(script.attribs.src));
+				var src = script.attribs.src;
+				grunt.log.debug('Parsing script "' + src + '" for template references');
+				var ast = esprima.parse(grunt.file.read(dir + src));
 
 				function astWalk(ast, callback) {
 					for(var prop in ast) {
@@ -41,7 +45,7 @@ module.exports = function (grunt) {
 					if(node.type === 'ObjectExpression') {
 						return _.any(node.properties, function (prop) { return prop.key.name === 'templateUrl'; });
 					} else if(node.type === 'AssignmentExpression') {
-						return node.operator === '=' && node.left.property.name === 'templateUrl';
+						return node.operator === '=' && node.left.property && node.left.property.name === 'templateUrl';
 					}
 					// ???? how did we get here?
 					return false;
@@ -49,12 +53,12 @@ module.exports = function (grunt) {
 
 				_.forEach(templateNodes, function (node) {
 					if(node.type === 'AssignmentExpression') {
-						if(node.right.type === 'Literal') {
+						if(node.right.type === 'Literal' && node.right.value) {
 							partials.push(node.right.value);
 						}
 					} else if(node.type === 'ObjectExpression') {
 						node.properties.forEach(function (prop) {
-							if(prop.key.name === 'templateUrl' && prop.value.type === 'Literal') {
+							if(prop.key.name === 'templateUrl' && prop.value.type === 'Literal' && prop.value.value) {
 								partials.push(prop.value.value);
 							}
 						});
@@ -64,6 +68,7 @@ module.exports = function (grunt) {
 
 			partials.forEach(function (partial) {
 				if(grunt.file.exists(partial)) {
+					grunt.log.debug('Adding partial "' + partial + '"');
 					var template = htmlparser.parseDOM(grunt.file.read(partial));
 					var script = {
 						type: htmlparser.ElementType.Script,
