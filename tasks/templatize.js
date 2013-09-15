@@ -74,7 +74,7 @@ module.exports = function (grunt) {
 						next: null,
 						parent: body
 					};
-					body.children[body.children.length-1] = script;
+					body.children[body.children.length-1].next = script;
 					body.children.push(script);
 				}
 			});
