@@ -9,7 +9,8 @@ module.exports = function (grunt) {
 	grunt.registerMultiTask('templatize', 'Combine your Angular templates into your index file', function () {
 		var options = this.options({
 			index: 'index.html',
-			output: 'index-prepared.html'
+			output: 'index-prepared.html',
+			partialsPath: ''
 		});
 
 		parseDomTree(htmlparser.parseDOM(grunt.file.read(options.index)), this.filesSrc);
@@ -67,6 +68,7 @@ module.exports = function (grunt) {
 			});
 
 			partials.forEach(function (partial) {
+				partial = path.join(options.partialsPath, partial);
 				if(grunt.file.exists(partial)) {
 					grunt.log.debug('Adding partial "' + partial + '"');
 					var template = htmlparser.parseDOM(grunt.file.read(partial));
@@ -82,6 +84,8 @@ module.exports = function (grunt) {
 					body.children[body.children.length-1].next = script;
 					body.children.push(script);
 					body.children.push({ type: 'text', data: '\n' });
+				} else {
+					grunt.log.debug('Missing partial "' + partial + '"');
 				}
 			});
 
